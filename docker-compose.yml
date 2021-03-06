@@ -1,0 +1,36 @@
+version: '3.6'
+
+services:
+  app:
+    build:
+      context: .
+      target: php
+    image: laravel-php
+    depends_on:
+      - redis
+    healthcheck:
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - .:/srv/app:rw,cached
+      - ./docker/php/conf.d/app.dev.ini:/usr/local/etc/php/conf.d/app.ini
+
+  nginx:
+    build:
+      context: .
+      target: nginx
+    image: laravel-nginx
+    depends_on:
+      - app
+    volumes:
+      - ./public:/srv/app/public:ro
+    ports:
+      - 8080:80
+
+  redis:
+    image: redis:5-alpine
+
+  cassandra:
+    image: bitnami/cassandra
